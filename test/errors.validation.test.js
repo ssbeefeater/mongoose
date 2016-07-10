@@ -10,7 +10,7 @@ var assert = require('power-assert'),
     SchemaType = mongoose.SchemaType,
     ValidatorError = SchemaType.ValidatorError;
 
-describe.only('ValidationError', function() {
+describe('ValidationError', function() {
   describe('#infiniteRecursion', function() {
     it('does not cause RangeError (gh-1834)', function(done) {
       var SubSchema,
