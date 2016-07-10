@@ -10,7 +10,7 @@ var assert = require('power-assert'),
     SchemaType = mongoose.SchemaType,
     ValidatorError = SchemaType.ValidatorError;
 
-describe('ValidationError', function() {
+describe.only('ValidationError', function() {
   describe('#infiniteRecursion', function() {
     it('does not cause RangeError (gh-1834)', function(done) {
       var SubSchema,
@@ -71,6 +71,28 @@ describe('ValidationError', function() {
         });
       });
     });
+    it('causes a validation error with dynamic custom message', function(done) {
+      var MinSchema,
+          M,
+          model;
+
+      MinSchema = new Schema({
+        appointmentDate: {type: Date, min: [Date.now,function() {return 'This is a dynamic message';}]}
+      });
+
+      M = mongoose.model('MinSchema2', MinSchema);
+
+      model = new M({
+        appointmentDate: new Date(Date.now().valueOf() - 10000)
+      });
+
+      // should fail validation with dynamic message
+      model.validate(function(err) {
+        assert.notEqual(err, null, 'min Date validation failed.');
+        assert.equal(err.errors.appointmentDate.message, 'This is a dynamic message', 'min Date validation failed with dynamic message.');
+        done();
+      });
+    });
   });
 
   describe('#maxDate', function() {
@@ -101,6 +123,29 @@ describe('ValidationError', function() {
         });
       });
     });
+    it('causes a validation error with dynamic custom message', function(done) {
+      var MaxSchema,
+          M,
+          model;
+
+      MaxSchema = new Schema({
+        birthdate: {type: Date, max: [Date.now,function() { return 'This is a dynamic message';}]}
+      });
+
+      M = mongoose.model('MaxSchema2', MaxSchema);
+
+      model = new M({
+        birthdate: new Date(Date.now().valueOf() + 2000)
+      });
+
+      // should fail validation with dynamic message
+      model.validate(function(err) {
+        assert.notEqual(err, null, 'max Date validation failed');
+        assert.equal(err.errors.birthdate.message, 'This is a dynamic message', 'max Date validation failed with dynamic message');
+        done();
+      });
+    });
+
   });
 
   describe('#minlength', function() {
@@ -129,6 +174,28 @@ describe('ValidationError', function() {
           assert.equal(err, null);
           done();
         });
+      });
+    });
+    it('causes a validation error with dynamic message', function(done) {
+      var AddressSchema,
+          Address,
+          model;
+
+      AddressSchema = new Schema({
+        postalCode: {type: String, minlength: [5,function() {return 'This is a dynamic message';}]}
+      });
+
+      Address = mongoose.model('MinLengthAddress2', AddressSchema);
+
+      model = new Address({
+        postalCode: '9512'
+      });
+
+      // should fail validation with dynamic message
+      model.validate(function(err) {
+        assert.notEqual(err, null, 'String minlegth validation failed.');
+        assert.equal(err.errors.postalCode.message, 'This is a dynamic message', 'String minlegth validation failed with dynamic message.');
+        done();
       });
     });
 
@@ -185,6 +252,28 @@ describe('ValidationError', function() {
           assert.equal(err, null);
           done();
         });
+      });
+    });
+    it('causes a validation error with dynamic message', function(done) {
+      var AddressSchema,
+          Address,
+          model;
+
+      AddressSchema = new Schema({
+        postalCode: {type: String, maxlength: [10,function() {return 'This is a dynamic message';}]}
+      });
+
+      Address = mongoose.model('MaxLengthAddress2', AddressSchema);
+
+      model = new Address({
+        postalCode: '95125012345'
+      });
+
+      // should fail validation  with dynamic message
+      model.validate(function(err) {
+        assert.notEqual(err, null, 'String maxlegth validation failed.');
+        assert.equal(err.errors.postalCode.message, 'This is a dynamic message', 'String maxlegth validation failed with dynamic message.');
+        done();
       });
     });
   });
